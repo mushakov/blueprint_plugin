@@ -1,5 +1,6 @@
+require 'rubygems'
 require 'sinatra'
-require 'slim'
+#require 'slim'
 require 'json'
 require 'redis'
 require 'uri'
@@ -7,7 +8,30 @@ require 'uri'
 redis = Redis.new(:host => '198.61.212.105', :port => 6379)
  
 get '/' do
-  slim :index
+  #slim :index
+  status 200
+  count = redis.llen "blueprints"
+  counter = 0
+  html = "<table><thead><tr><th>Blueprint</th><th>Priority</th><th>Delivery</th><th>Series</th><th>Assignee</th><th>Design</th></tr></thead><tbody>"
+  while counter < count do
+    blueprint = redis.lindex "blueprints", counter
+    
+    counter=counter+1
+    hash_blueprint = JSON.parse redis.get "blueprint___" + blueprint
+    priority = (hash_blueprint['priority'] if hash_blueprint.has_key?('priority')).to_s
+    delivery = (hash_blueprint['delivery'] if hash_blueprint.has_key?('delivery')).to_s
+    series = (hash_blueprint['series'] if hash_blueprint.has_key?('series')).to_s
+    assignee = (hash_blueprint['assignee'] if hash_blueprint.has_key?('assignee')).to_s 
+    design = (hash_blueprint['design'] if hash_blueprint.has_key?('design')).to_s
+    html += "<tr><td>" + hash_blueprint['name'] + "</td>"
+    html += "<td>" + priority + "</td>"
+    html += "<td>" + delivery + "</td>"
+    html += "<td>" + series  + "</td>"
+    html += "<td>" + assignee + "</td>"
+    html += "<td>" + design + "</td></tr>"
+  end
+  html += "</tbody></table>"
+  #eval(redis.get "blueprints")
 end
 
 get '/Question' do
